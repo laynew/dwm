@@ -65,6 +65,7 @@ static const char *backlight_down[] = { "cmd-adjust-backlight", "-15", NULL };
 static const char *vol_up[]   = { "cmd-volume-set", "5%+", NULL };
 static const char *vol_down[] = { "cmd-volume-set", "5%-", NULL };
 static const char *vol_mute[] = { "cmd-volume-set", "toggle", NULL };
+static const char *capture_screen[] = { "cmd-screenshot-to-clipboard", NULL };
 
 static const Key keys[] = {
 	/* modifier                     key        function        argument */
@@ -73,6 +74,7 @@ static const Key keys[] = {
 	{ 0,                            XF86XK_AudioMute, spawn,   {.v = vol_mute } },
 	{ 0,                            XF86XK_AudioLowerVolume, spawn, {.v = vol_down } },
 	{ 0,                            XF86XK_AudioRaiseVolume, spawn, {.v = vol_up } },
+	{ MODKEY,                       XK_Pause,  spawn,          {.v = capture_screen } },
 	{ MODKEY,                       XK_p,      spawn,          {.v = dmenucmd } },
 	{ MODKEY|ShiftMask,             XK_Return, spawn,          {.v = termcmd } },
 	{ MODKEY,                       XK_b,      togglebar,      {0} },
