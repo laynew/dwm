@@ -60,12 +60,16 @@ static const Layout layouts[] = {
 static char dmenumon[2] = "0"; /* component of dmenucmd, manipulated in spawn() */
 static const char *dmenucmd[] = { "dmenu_run", "-m", dmenumon, "-fn", dmenufont, "-nb", col_gray1, "-nf", col_gray3, "-sb", col_cyan, "-sf", col_gray4, NULL };
 static const char *termcmd[]  = { "st", NULL };
-static const char *vol_up[]   = { "amixer", "set", "Master", "5%+", NULL };
-static const char *vol_down[] = { "amixer", "set", "Master", "5%-", NULL };
-static const char *vol_mute[] = { "amixer", "set", "Master", "toggle", NULL };
+static const char *backlight_up[]   = { "cmd-adjust-backlight", "+15", NULL };
+static const char *backlight_down[] = { "cmd-adjust-backlight", "-15", NULL };
+static const char *vol_up[]   = { "cmd-volume-set", "5%+", NULL };
+static const char *vol_down[] = { "cmd-volume-set", "5%-", NULL };
+static const char *vol_mute[] = { "cmd-volume-set", "toggle", NULL };
 
 static const Key keys[] = {
 	/* modifier                     key        function        argument */
+	{ 0,                            XF86XK_MonBrightnessUp, spawn, {.v = backlight_up } },
+	{ 0,                            XF86XK_MonBrightnessDown, spawn, {.v = backlight_down } },
 	{ 0,                            XF86XK_AudioMute, spawn,   {.v = vol_mute } },
 	{ 0,                            XF86XK_AudioLowerVolume, spawn, {.v = vol_down } },
 	{ 0,                            XF86XK_AudioRaiseVolume, spawn, {.v = vol_up } },
