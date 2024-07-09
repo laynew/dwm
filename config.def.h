@@ -121,7 +121,7 @@ static const Key keys[] = {
 	{ 0,                            XF86XK_AudioMute, spawn,   {.v = vol_mute } },
 	{ 0,                            XF86XK_AudioLowerVolume, spawn, {.v = vol_down } },
 	{ 0,                            XF86XK_AudioRaiseVolume, spawn, {.v = vol_up } },
-	{ MODKEY,                       XK_Pause,  spawn,          {.v = capture_screen } },
+	{ MODKEY|ShiftMask,             XK_s,      spawn,          {.v = capture_screen } },
 	{ MODKEY,                       XK_p,      spawn,          {.v = dmenucmd } },
 	{ MODKEY|ShiftMask,             XK_Return, spawn,          {.v = termcmd } },
 	{ MODKEY,                       XK_b,      togglebar,      {0} },
