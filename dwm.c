@@ -144,6 +144,7 @@ struct Monitor {
 	float mfact;
 	int nmaster;
 	int num;
+    int xnum;
 	int by;               /* bar geometry */
 	int mx, my, mw, mh;   /* screen size */
 	int wx, wy, ww, wh;   /* window area  */
@@ -1526,8 +1527,17 @@ void
 saveSession(void)
 {
 	FILE *fw = fopen(SESSION_FILE, "w");
+    fprintf(stderr, "New saveSession for all monitors\n");
+    for (Monitor *m = mons; m; m = m->next) {
+        for (Client *c = m->clients; c; c = c->next) {
+            fprintf(fw, "%lu %u %d\n", c->win, c->tags, m->num);
+            fprintf(stderr, "[dbg]:Name %s,Tags: %b, %lu %u %d\n", c->name, c->tags, c->win, c->tags, m->num);
+        }
+    }
+    fprintf(stderr, "\n");
 	for (Client *c = selmon->clients; c != NULL; c = c->next) { // get all the clients with their tags and write them to the file
 		fprintf(fw, "%lu %u\n", c->win, c->tags);
+		fprintf(stderr, "[dbg]:Name %s,Tags: %b, %lu %u\n", c->name, c->tags, c->win, c->tags);
 	}
 	fclose(fw);
 }
@@ -1540,17 +1550,30 @@ restoreSession(void)
 	if (!fr)
 		return;
 
-	char *str = malloc(23 * sizeof(char)); // allocate enough space for excepted input from text file
+	char *str = malloc(100 * sizeof(char)); // allocate enough space for excepted input from text file
 	while (fscanf(fr, "%[^\n] ", str) != EOF) { // read file till the end
 		long unsigned int winId;
 		unsigned int tagsForWin;
-		int check = sscanf(str, "%lu %u", &winId, &tagsForWin); // get data
-		if (check != 2) // break loop if data wasn't read correctly
+        int monitorNum;
+		int check = sscanf(str, "%lu %u %d", &winId, &tagsForWin, &monitorNum); // get data
+		if (check != 3) // break loop if data wasn't read correctly
 			break;
 		
 		for (Client *c = selmon->clients; c ; c = c->next) { // add tags to every window by winId
 			if (c->win == winId) {
 				c->tags = tagsForWin;
+                if (selmon->num != monitorNum) {
+                    fprintf(stderr, "[dbg]: Client=%lu must move to monitor=%d\n", c->win, monitorNum);
+                    for (Monitor *m = mons; m; m = m->next) {
+                            fprintf(stderr, "[dbg]: Find mon: m->num=%d\n", m->num);
+                        if (m->num == monitorNum) {
+                            fprintf(stderr, "[dbg]: Sending Client=%lu to monitor=%d\n", c->win, m->num);
+                            sendmon(c, m);
+                            c->tags = tagsForWin;
+                            break;
+                        }
+                    }
+                }
 				break;
 			}
 		}
@@ -2346,6 +2369,7 @@ updategeom(void)
 
 #ifdef XINERAMA
 	if (XineramaIsActive(dpy)) {
+        fprintf(stderr, "updategeom() XineramaIsActive. *mons: %p\n", mons);
 		int i, j, n, nn;
 		Client *c;
 		Monitor *m;
@@ -2376,6 +2400,7 @@ updategeom(void)
 			{
 				dirty = 1;
 				m->num = i;
+                m->xnum = unique[i].screen_number;
 				m->mx = m->wx = unique[i].x_org;
 				m->my = m->wy = unique[i].y_org;
 				m->mw = m->ww = unique[i].width;
@@ -2401,6 +2426,7 @@ updategeom(void)
 	} else
 #endif /* XINERAMA */
 	{ /* default monitor setup */
+        fprintf(stderr, "[dbg]:updategeom() XineramaIsActive = false\n");
 		if (!mons)
 			mons = createmon();
 		if (mons->mw != sw || mons->mh != sh) {
@@ -2414,6 +2440,11 @@ updategeom(void)
 		selmon = mons;
 		selmon = wintomon(root);
 	}
+    fprintf(stderr, "updategeom() complete, dirty=%d\n", dirty);
+    for(Monitor *m = mons; m; m = m->next) {
+        fprintf(stderr, "Monitor num=%d, xnum=%d, orig=%dx%d, res=%dx%d\n",
+                m->num, m->xnum, m->mx, m->my, m->mw, m->mh);
+    }
 	return dirty;
 }
 
