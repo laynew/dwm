@@ -500,6 +500,7 @@ void
 swallow(Client *p, Client *c)
 {
 
+    return;
 	if (c->noswallow || c->isterminal)
 		return;
 	if (c->noswallow && !swallowfloating && c->isfloating)
@@ -907,9 +908,9 @@ dirtomon(int dir)
 	if (dir > 0) {
 		if (!(m = selmon->next))
 			m = mons;
-	} else if (selmon == mons)
-		for (m = mons; m->next; m = m->next);
-	else
+    } else if (selmon == mons)
+        for (m = mons; m->next; m = m->next);
+    else
 		for (m = mons; m->next != selmon; m = m->next);
 	return m;
 }
