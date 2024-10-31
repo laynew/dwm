@@ -107,6 +107,9 @@ static const Layout layouts[] = {
 /* commands */
 static char dmenumon[2] = "0"; /* component of dmenucmd, manipulated in spawn() */
 static const char *dmenucmd[] = { "dmenu_run", "-m", dmenumon, "-fn", dmenufont, "-nb", col_gray1, "-nf", col_gray3, "-sb", col_cyan, "-sf", col_gray4, NULL };
+static const char *keepass_password_menucmd[] = { "keepassxc-menu" };
+static const char *keepass_totp_menucmd[] = { "keepassxc-menu", "--totp" };
+static const char *keepass_username_menucmd[] = { "keepassxc-menu", "--name" };
 static const char *termcmd[]  = { "st", NULL };
 static const char *backlight_up[]   = { "cmd-adjust-backlight", "+15", NULL };
 static const char *backlight_down[] = { "cmd-adjust-backlight", "-15", NULL };
@@ -124,7 +127,10 @@ static const Key keys[] = {
 	{ 0,                            XF86XK_AudioLowerVolume, spawn, {.v = vol_down } },
 	{ 0,                            XF86XK_AudioRaiseVolume, spawn, {.v = vol_up } },
 	{ MODKEY|ShiftMask,             XK_s,      spawn,          {.v = capture_screen } },
-	{ MODKEY,                       XK_p,      spawn,          {.v = dmenucmd } },
+	{ MODKEY,                       XK_r,      spawn,          {.v = dmenucmd } },
+	{ MODKEY,                       XK_p,      spawn,          {.v = keepass_password_menucmd } },
+	{ MODKEY|ShiftMask,             XK_p,      spawn,          {.v = keepass_totp_menucmd } },
+	{ MODKEY|ShiftMask|ControlMask, XK_p,      spawn,          {.v = keepass_username_menucmd } },
 	{ MODKEY|ShiftMask,             XK_Return, spawn,          {.v = termcmd } },
 	{ MODKEY,                       XK_b,      togglebar,      {0} },
 	{ MODKEY,                       XK_j,      focusstack,     {.i = +1 } },
