@@ -120,6 +120,7 @@ static const char *backlight_down[] = { "cmd-adjust-backlight", "-15", NULL };
 static const char *vol_up[]   = { "cmd-volume-set", "5%+", NULL };
 static const char *vol_down[] = { "cmd-volume-set", "5%-", NULL };
 static const char *vol_mute[] = { "cmd-volume-set", "toggle", NULL };
+static const char *play_pause[] = { "playerctl", "play-pause", NULL };
 static const char *capture_screen[] = { "cmd-screenshot-to-clipboard", NULL };
 
 #include "exitdwm.c"
@@ -130,6 +131,7 @@ static const Key keys[] = {
 	{ 0,                            XF86XK_AudioMute, spawn,   {.v = vol_mute } },
 	{ 0,                            XF86XK_AudioLowerVolume, spawn, {.v = vol_down } },
 	{ 0,                            XF86XK_AudioRaiseVolume, spawn, {.v = vol_up } },
+	{ 0,                            XF86XK_AudioPlay, spawn, {.v = play_pause } },
 	{ MODKEY|ShiftMask,             XK_s,      spawn,          {.v = capture_screen } },
 	{ MODKEY,                       XK_r,      spawn,          {.v = dmenucmd } },
 	{ MODKEY,                       XK_p,      spawn,          {.v = keepass_password_menucmd } },
