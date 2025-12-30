@@ -1550,8 +1550,10 @@ void
 saveSession(void)
 {
 	FILE *fw = fopen(SESSION_FILE, "w");
-	for (Client *c = selmon->clients; c != NULL; c = c->next) { // get all the clients with their tags and write them to the file
-		fprintf(fw, "%lu %u\n", c->win, c->tags);
+	for (Monitor *m = mons; m != NULL; m = m->next) { // get all the clients with their tags and write them to the file
+		for (Client *c = m->clients; c != NULL; c = c->next) { // get all the clients with their tags and write them to the file
+			fprintf(fw, "%d %lu %u\n", m->num, c->win, c->tags);
+		}
 	}
 	fclose(fw);
 }
@@ -1564,20 +1566,30 @@ restoreSession(void)
 	if (!fr)
 		return;
 
-	char *str = malloc(23 * sizeof(char)); // allocate enough space for excepted input from text file
+	char *str = malloc(50 * sizeof(char)); // allocate enough space for excepted input from text file
 	while (fscanf(fr, "%[^\n] ", str) != EOF) { // read file till the end
-		long unsigned int winId;
-		unsigned int tagsForWin;
-		int check = sscanf(str, "%lu %u", &winId, &tagsForWin); // get data
-		if (check != 2) // break loop if data wasn't read correctly
-			break;
-
-		for (Client *c = selmon->clients; c ; c = c->next) { // add tags to every window by winId
-			if (c->win == winId) {
-				c->tags = tagsForWin;
+			long unsigned int winId;
+			unsigned int tagsForWin;
+			int monNum;
+			int check = sscanf(str, "%d %lu %u", &monNum, &winId, &tagsForWin); // get data
+			if (check != 3) // break loop if data wasn't read correctly
 				break;
+
+			for (Client *c = selmon->clients; c ; c = c->next) { // add tags to every window by winId
+				if (c->win == winId) {
+					c->tags = tagsForWin;
+					if (monNum != selmon->num) {
+						for (Monitor *m = mons; m != NULL; m = m->next) {
+							if (m->num == monNum) {
+								sendmon(c, m);
+								c->tags = tagsForWin;
+								break;
+							}
+						}
+					}
+					break;
+				}
 			}
-		}
     }
 
 	for (Client *c = selmon->clients; c ; c = c->next) { // refocus on windows
