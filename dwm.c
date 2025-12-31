@@ -209,6 +209,7 @@ static void expose(XEvent *e);
 static void focus(Client *c);
 static void focusin(XEvent *e);
 static void focusmon(const Arg *arg);
+static void focusmonbynum(const Arg *arg);
 static void focusstack(const Arg *arg);
 static Atom getatomprop(Client *c, Atom prop);
 static int getrootptr(int *x, int *y);
@@ -1066,6 +1067,18 @@ focusmon(const Arg *arg)
 }
 
 void
+focusmonbynum(const Arg *arg) {
+	for (Monitor *m = mons; m != NULL; m = m->next) {
+		if (m->num == arg->i) {
+			unfocus(selmon->sel, 0);
+			selmon = m;
+			focus(NULL);
+			break;
+		}
+	}
+}
+
+void
 focusstack(const Arg *arg)
 {
 	Client *c = NULL, *i;
@@ -1551,8 +1564,9 @@ saveSession(void)
 {
 	FILE *fw = fopen(SESSION_FILE, "w");
 	for (Monitor *m = mons; m != NULL; m = m->next) { // get all the clients with their tags and write them to the file
+		fprintf(fw, "%c %d %u\n", 'M', m->num, m->tagset[m->seltags]);
 		for (Client *c = m->clients; c != NULL; c = c->next) { // get all the clients with their tags and write them to the file
-			fprintf(fw, "%d %lu %u\n", m->num, c->win, c->tags);
+			fprintf(fw, "%c %d %lu %u\n", 'C', m->num, c->win, c->tags);
 		}
 	}
 	fclose(fw);
@@ -1568,11 +1582,13 @@ restoreSession(void)
 
 	char *str = malloc(50 * sizeof(char)); // allocate enough space for excepted input from text file
 	while (fscanf(fr, "%[^\n] ", str) != EOF) { // read file till the end
+		if (str[0] == 'C') {
 			long unsigned int winId;
 			unsigned int tagsForWin;
+			char type;
 			int monNum;
-			int check = sscanf(str, "%d %lu %u", &monNum, &winId, &tagsForWin); // get data
-			if (check != 3) // break loop if data wasn't read correctly
+			int check = sscanf(str, "%c %d %lu %u", &type, &monNum, &winId, &tagsForWin); // get data
+			if (check != 4) // break loop if data wasn't read correctly
 				break;
 
 			for (Client *c = selmon->clients; c ; c = c->next) { // add tags to every window by winId
@@ -1590,7 +1606,33 @@ restoreSession(void)
 					break;
 				}
 			}
-    }
+		}
+		else if (str[0] == 'M') {
+			char type;
+			int monNum;
+			unsigned int tags;
+			int check = sscanf(str, "%c %d %u\n", &type, &monNum, &tags);
+			if (check != 3) {
+				break;
+			}
+
+			if (selmon->num == monNum) {
+				Arg a = { .ui = tags };
+				view(&a);
+			}
+			else {
+				int oldMonNum = selmon->num;
+				Arg a = { .i = monNum };
+				focusmonbynum(&a);
+				if (selmon->num == monNum) {
+					Arg a = { .ui = tags };
+					view(&a);
+					a.i = oldMonNum;
+					focusmonbynum(&a); // switch back to original monitor after setting tag
+				}
+			}
+		}
+	}
 
 	for (Client *c = selmon->clients; c ; c = c->next) { // refocus on windows
 		focus(c);
